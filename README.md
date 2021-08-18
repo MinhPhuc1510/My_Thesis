@@ -18,7 +18,7 @@ https://user-images.githubusercontent.com/64849152/129922374-aefe37d0-7469-40b3-
 
 
 
-## REFERENCES:
+## References:
 [TensorRT Yolov4-tiny reference on github jkjung-avt](https://github.com/jkjung-avt/tensorrt_demos)
 
 
