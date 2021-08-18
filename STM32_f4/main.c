@@ -4,28 +4,22 @@
 #include "string.h"
 #include "stdlib.h"
 
-#define		BUFF_SIZE			3
-#define   T_s		0.012
-#define   Start   'A'
-#define   End     'E'
-#define		BUFF_SIZE_Rx			11
-
-uint8_t 	rxbuff[BUFF_SIZE_Rx] = {Start,0,0,0,0,0,0,0,0,'T',End};
+#define	  BUFF_SIZE			3
+#define   T_s		        0.012
+#define   Start             'A'
+#define   End               'E'
+#define	  BUFF_SIZE_Rx		11
 
 
+uint8_t   rxbuff[BUFF_SIZE_Rx] = {Start,0,0,0,0,0,0,0,0,'T',End};
 int V =50;
 int alpha  =150;
 int beta = 150;
-
 volatile float Kp,Ki,Kd,SP_speed;
 static float e=0, e_sum=0,e_pre=0,d_e,Output=0,e_u=0,e_pre_pre=0;
-
 uint8_t txbuff[3] ;
 void init_main(void);
 char mode ='T';
-
-
-
 double Encoder ;
 float output ;
 
@@ -33,7 +27,6 @@ float output ;
 GPIO_InitTypeDef GPIO_InitStructure;
 TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 TIM_OCInitTypeDef  TIM_OCInitStructure;
-
 
 
 void TIM2_Config(void);
@@ -44,54 +37,25 @@ void DMA2_Stream0_IRQHandler(void);
 float PID_Speed(float Kp, float Ki, float Kd, float setpoint, float speed);
 
 
-
-
-//void delay_us(uint16_t period){
-//  	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
-//  	TIM6->PSC = 8399;		// clk = SystemCoreClock / 4 / (PSC+1) *2 = 1MHz
-//  	TIM6->ARR = 10*period-1;
-//  	TIM6->CNT = 0;
-//  	TIM6->EGR = 1;		// update registers;
-
-//  	TIM6->SR  = 0;		// clear overflow flag
-//  	TIM6->CR1 = 1;		// enable Timer6
-
-//  	while (!TIM6->SR);
-//    
-//  	TIM6->CR1 = 0;		// stop Timer6
-//  	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, DISABLE);
-//}
-
 void delay_1ms(uint16_t period){
-
   	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
   	TIM6->PSC = 8399;		// clk = SystemCoreClock / 4 / (PSC+1) *2 = 10KHz
   	TIM6->ARR = 10*period-1;
   	TIM6->CNT = 0;
   	TIM6->EGR = 1;		// update registers;
-
   	TIM6->SR  = 0;		// clear overflow flag
   	TIM6->CR1 = 1;		// enable Timer6
 
   	while (!TIM6->SR);
 		Encoder = (float)abs(TIM_GetCounter(TIM8)-32768)*1000*60/(12*4*374);
-		//set_PWM(8);
 		output = PID_Speed(2,15,0, V, Encoder);
 		TIM_SetCounter(TIM8, 32768);
 		TIM_Cmd(TIM8,ENABLE);
-	
 		set_PWM(output,mode);
-  	TIM6->CR1 = 0;		// stop Timer6
-  	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, DISABLE);
+  		TIM6->CR1 = 0;		// stop Timer6
+  		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, DISABLE);
 }
 
-
-//void Change(char *x , int y ) {
-//	 for(int i =2; i>-1 ; i--){
-//	  x[i] = y%10;
-//		y=y/10;	
-//	 }
-//	}
 
 int main(void)
 {
@@ -100,11 +64,8 @@ int main(void)
 	TIM8_ENCODER_Configuration();
 	TIM_PWM_Config();
 	TIM2_Config();
-	
 	init_main();
-	
 	while(1){
-		
 			if (alpha > beta){
 			 beta += 2;			
 			}
@@ -125,107 +86,94 @@ int main(void)
 //			DMA_Cmd(DMA1_Stream4, ENABLE); //bat dau cho DMA truyen
 //			
 	}
-	
 }
-
-
 
 
 void set_PWM(float duty,char mode)
-{
-
-	if(mode == 'N') // 
-	{
+{	if(mode == 'N') {
 	TIM4->CCR1=duty*4199/100;
 	TIM4->CCR2=0*4199/100;
-
 	}
-  else if(mode == 'T')// 
-	{
+  else if(mode == 'T'){
     TIM4->CCR1=0*4199/100;
   	TIM4->CCR2=duty*4199/100;
 	}
-	else if(mode == 'S')// Stop
-	{
+	else if(mode == 'S'){
 	TIM4->CCR1=0*4199/100;
-  TIM4->CCR2=0*4199/100;
+  	TIM4->CCR2=0*4199/100;
 	e=0, e_sum=0,e_pre=0,Output=0,e_u=0,e_pre_pre=0;
 	}
 }
+
 
 float PID_Speed(float Kp, float Ki, float Kd, float setpoint, float speed)
 { e_pre_pre = e_pre;
 	e_pre=e;
 	e=setpoint-speed;
-	e_u = Output;
-	Output=e_u+Kp*(e-e_pre)+Ki*((float)T_s/2)*(e+e_pre)+(Kd/(float)T_s)*(e-2*e_pre+e_pre_pre);
-	
-	if(Output >100)
-		Output=100;
-	else if(Output<0)
-	{
-		Output=0;
-	}
+	u_pre = Output;
+	Output=u_pre+Kp*(e-e_pre)+Ki*((float)T_s/2)*(e+e_pre)+(Kd/(float)T_s)*(e-2*e_pre+e_pre_pre);
+	if(Output >100)   Output=100;
+	else if(Output<0) Output=0;
 	return(Output);
 }
 
+
 void init_main(void)
 {
-  GPIO_InitTypeDef 	GPIO_InitStructure; 
+  	GPIO_InitTypeDef 	GPIO_InitStructure; 
 	USART_InitTypeDef USART_InitStructure;   
 	DMA_InitTypeDef  	DMA_InitStructure;
-  ADC_InitTypeDef ADC_InitStructure; 
+  	ADC_InitTypeDef ADC_InitStructure; 
 	ADC_CommonInitTypeDef  ADC_CommonInitStructure;
 	NVIC_InitTypeDef  NVIC_InitStructure;	
-  /* Enable GPIO clock */
+  	/* Enable GPIO clock */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-  /* Enable UART clock */
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
+  	/* Enable UART clock */
+  	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
 	/* Enable DMA1 clock */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
-  /* Enable DMA2 clock */
+  	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+  	/* Enable DMA2 clock */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE); 
-/* Enable ADC1 clock */		
+	/* Enable ADC1 clock */		
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE); 
-  /* Connect UART4 pins to AF2 */  
-  GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_UART4);
-  GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_UART4); 
+  	/* Connect UART4 pins to AF2 */  
+  	GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_UART4);
+  	GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_UART4); 
 
-  /* GPIO Configuration for UART4 Tx */
-  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10;
-  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  	/* GPIO Configuration for UART4 Tx */
+	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-  /* GPIO Configuration for USART Rx */
-  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_11;
-  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  	/* GPIO Configuration for USART Rx */
+	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
        
   /* USARTx configured as follow:
 		- BaudRate = 115200 baud  
     - Word Length = 8 Bits
-    - One Stop Bit
+    - One Stop Bit	
     - No parity
     - Hardware flow control disabled (RTS and CTS signals)
     - Receive and transmit enabled
   */
-  USART_InitStructure.USART_BaudRate = 115200;
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;
-  USART_InitStructure.USART_Parity = USART_Parity_No;
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-
-  USART_Init(UART4, &USART_InitStructure);
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_Init(UART4, &USART_InitStructure);
 	
 	/* Enable USART */
-  USART_Cmd(UART4, ENABLE);
+  	USART_Cmd(UART4, ENABLE);
 	
 	/* Enable UART4 DMA */
-  USART_DMACmd(UART4, USART_DMAReq_Tx, ENABLE); 
+  	USART_DMACmd(UART4, USART_DMAReq_Tx, ENABLE); 
 	
 	
 	/* DMA1 Stream4 Channel4 for UART4 Tx configuration */			
@@ -385,7 +333,6 @@ TIM_Cmd(TIM8, ENABLE);
 }
 
 
-
 void DMA1_Stream2_IRQHandler(void)
 {
   uint16_t i;
@@ -403,8 +350,5 @@ void DMA1_Stream2_IRQHandler(void)
 				mode =rxbuff[9];	
 				//delay_us(50);
 				DMA_Cmd(DMA1_Stream2, ENABLE);}
-	else 
-	{
-				V = 0;  	
-	}
+	else V = 0;  		
 }
