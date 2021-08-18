@@ -11,7 +11,7 @@
 {@youtube: https://www.youtube.com/watch?v=v734HtE8bno}
 
 ## REFERENCES:
-[TENSORRT-JKJUNG](https://github.com/jkjung-avt/tensorrt_demos)
+[TensorRT Yolov4-tiny reference on github jkjung-avt](https://github.com/jkjung-avt/tensorrt_demos): 
 
 
 
