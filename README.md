@@ -10,5 +10,8 @@
 ## Video demo :
 {@youtube: https://www.youtube.com/watch?v=v734HtE8bno}
 
+## REFERENCES:
+[TENSORRT-JKJUNG](https://github.com/jkjung-avt/tensorrt_demos)
+
 
 
