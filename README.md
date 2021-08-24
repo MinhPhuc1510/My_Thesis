@@ -1,7 +1,7 @@
 # **Self-driving car using CNN + YOLOv4-tiny + TensorRT on Jetson nano kit**
 
 ## Description 
-- This is my Thesis. Our team(2 members) researched and applied CNN and YOLOv4-tiny algorithms + TensorRT for steering angle prediction and object detection (traffic sign) for self-driving car .
+- This is my Thesis. Our team(2 members) researched and applied CNN, YOLOv4-tiny algorithms + TensorRT for steering angle prediction and object detection (traffic sign).
 - Hardware:  Jetson Nano kit, Stm32f4,..
 - The dataset is collected and labeled by team members.
 
